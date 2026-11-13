@@ -9,7 +9,7 @@ Abre `index.html` en un navegador moderno o sirve esta carpeta en un servidor we
 - **Windows:** mueve con `←` / `→` o `A` / `D`; salta con `Espacio`; ataca con `J` / `X`; esquiva con `K` / `C`; lanza magia con `L` / `V`.
 - **Android:** abre el juego en Chrome y usa los controles táctiles; desde el menú del navegador se puede instalar como aplicación web (PWA).
 
-El juego incluye una introducción de historia, tres brasas coleccionables, enemigos, combate cuerpo a cuerpo y magia, santuarios, un jefe final y controles adaptados a móvil.
+El viaje cruza ocho regiones a lo largo de un mundo de casi 9.600 unidades, con rutas elevadas, enemigos, seis brasas coleccionables que activan santuarios, combate cuerpo a cuerpo y magia, y un jefe final. Incluye controles táctiles para móvil.
 
 ## APK y Windows
 

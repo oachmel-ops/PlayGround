@@ -2,13 +2,32 @@
   const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
   const ui=Object.fromEntries(['hud','title-screen','lore-screen','pause-screen','ending-screen','hearts','soul-fill','relics','zone-name','toast','hint','boss-bar','boss-fill'].map(id=>[id,document.getElementById(id)]));
   const keys=new Set(),actions={left:false,right:false},just=new Set();
-  const WORLD=3300;let W=innerWidth,H=innerHeight,dpr=1,floorY=H-68,camera=0,mode='title',last=0,elapsed=0,toastTimer=0,slashTimer=0,slashHit=new Set(),shake=0;
+  const WORLD=9600;let W=innerWidth,H=innerHeight,dpr=1,floorY=H-68,camera=0,mode='title',last=0,elapsed=0,toastTimer=0,slashTimer=0,slashHit=new Set(),shake=0;
   let player,enemies,platforms,relics,particles,projectiles,boss,checkpoint,savedRelics;
   const rand=seed=>{let t=seed+0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};
   const resize=()=>{W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.floor(W*dpr);canvas.height=Math.floor(H*dpr);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);floorY=H-68;if(player&&player.grounded)player.y=floorY-player.h;};addEventListener('resize',resize);resize();
-  const makeLevel=()=>{platforms=[{x:0,w:760,height:0},{x:835,w:590,height:0},{x:1515,w:760,height:0},{x:2385,w:915,height:0},{x:435,w:145,height:105},{x:945,w:170,height:125},{x:1165,w:120,height:70},{x:1620,w:160,height:105},{x:1865,w:180,height:145},{x:2110,w:150,height:90},{x:2530,w:155,height:120},{x:2750,w:170,height:78}];
-    enemies=[{x:420,min:340,max:620,hp:2,type:'wretch',dir:1},{x:680,min:610,max:740,hp:2,type:'wretch',dir:-1},{x:1020,min:880,max:1110,hp:2,type:'wretch',dir:1},{x:1320,min:1190,max:1390,hp:3,type:'knight',dir:-1},{x:1690,min:1550,max:1800,hp:2,type:'wretch',dir:1},{x:2040,min:1900,max:2210,hp:3,type:'knight',dir:-1},{x:2510,min:2410,max:2630,hp:2,type:'wretch',dir:1},{x:2700,min:2620,max:2810,hp:3,type:'knight',dir:-1}].map(e=>({...e,maxHp:e.hp,vy:0,grounded:false,hurt:0,attack:0,dead:false}));
-    relics=[760,1510,2370].map((x,i)=>({x,y:floorY-[125,175,135][i],got:false,bob:rand(i+8)*6}));projectiles=[];particles=[];boss={x:3040,y:floorY-92,w:58,h:92,hp:14,maxHp:14,active:false,dead:false,dir:-1,attack:1.2,hurt:0,vy:0};};
+  const makeLevel=()=>{
+    // Nine traversable chapters, each with a small elevated route and a guarded ember.
+    platforms=[];
+    for(let chapter=0;chapter<10;chapter++){
+      const base=chapter*960;
+      for(let step=0;step<4;step++){
+        const x=base+210+step*190+(chapter%2?35:0),height=58+((chapter*17+step*29)%4)*14;
+        platforms.push({x,w:125+(step%2)*35,height});
+      }
+    }
+    enemies=[];
+    for(let chapter=0;chapter<10;chapter++){
+      const base=chapter*960;
+      for(let n=0;n<3;n++){
+        const x=base+390+n*245,hp=chapter>5&&n===2?4:(n===1?3:2),type=n===1||chapter>6&&n===2?'knight':'wretch';
+        enemies.push({x,min:base+300+n*210,max:base+575+n*210,hp,type,dir:n%2? -1:1});
+      }
+    }
+    enemies=enemies.map(e=>({...e,maxHp:e.hp,vy:0,grounded:false,hurt:0,attack:0,dead:false}));
+    relics=[760,2180,3650,5070,6550,8030].map((x,i)=>({x,y:floorY-[125,108,140,110,145,115][i],got:false,bob:rand(i+8)*6}));
+    projectiles=[];particles=[];boss={x:9250,y:floorY-112,w:72,h:112,hp:26,maxHp:26,active:false,dead:false,dir:-1,attack:1.2,hurt:0,vy:0};
+  };
   const updateHud=()=>{ui.hearts.innerHTML=Array.from({length:player.maxHp},(_,i)=>`<span class="heart ${i>=player.hp?'empty':''}">♥</span>`).join('');ui['soul-fill'].style.width=Math.min(100,player.soul)+'%';ui.relics.textContent=savedRelics;};
   const reset=()=>{makeLevel();savedRelics=0;checkpoint=100;player={x:100,y:floorY-58,w:34,h:58,vx:0,vy:0,dir:1,hp:5,maxHp:5,soul:35,grounded:false,invuln:0,dash:0,dashCd:0,attackCd:0,spellCd:0,anim:0};updateHud();};reset();
   const showToast=(text,duration=2300)=>{ui.toast.textContent=text;ui.toast.classList.add('show');toastTimer=duration;};
@@ -32,10 +51,10 @@
     for(const p of platforms){const py=floorY-p.height;if(player.x+player.w>p.x&&player.x<p.x+p.w&&player.y+player.h>=py&&player.y+player.h-player.vy*dt<=py+12&&player.vy>=0){player.y=py-player.h;player.vy=0;player.grounded=true;}}if(player.y+player.h>=floorY){player.y=floorY-player.h;player.vy=0;player.grounded=true;}if(player.y>H+150){damagePlayer();player.y=floorY-player.h;}if(!move&&player.grounded&&player.dash<=0)player.vx*=Math.pow(.001,dt);
     if(slashTimer>0){for(let i=0;i<enemies.length;i++){const e=enemies[i];if(e.dead||slashHit.has(i))continue;const dx=e.x-player.x;if(dx*player.dir>=-8&&dx*player.dir<76&&Math.abs((e.y+25)-(player.y+29))<62){slashHit.add(i);hurtEnemy(e);}}if(boss.active&&!boss.dead&&!slashHit.has('boss')){const dx=boss.x-player.x;if(dx*player.dir>=-8&&dx*player.dir<91&&Math.abs((boss.y+46)-(player.y+29))<68){slashHit.add('boss');hurtBoss(1);}}}
     for(const e of enemies){if(e.dead)continue;e.hurt=Math.max(0,e.hurt-dt);e.attack=Math.max(0,e.attack-dt);e.y=floorY-(e.type==='knight'?58:50);if(e.hurt>0){e.x+=(e.vx||0)*dt;e.vx*=.82;continue;}const target=player.x+17;if(Math.abs(target-e.x)<260){e.dir=target<e.x?-1:1;e.x+=e.dir*(e.type==='knight'?37:54)*dt;if(Math.abs(target-e.x)<39&&Math.abs(player.y-e.y)<55&&e.attack<=0){e.attack=e.type==='knight'?1.1:.88;damagePlayer();}}else{e.x+=e.dir*20*dt;if(e.x<e.min||e.x>e.max)e.dir*=-1;}}
-    for(const r of relics)if(!r.got&&Math.abs(player.x+17-r.x)<36&&Math.abs(player.y+29-r.y)<60){r.got=true;savedRelics++;player.soul=Math.min(100,player.soul+30);player.hp=Math.min(player.maxHp,player.hp+1);checkpoint=Math.min(WORLD-80,Math.floor(r.x+80));burst(r.x,r.y,'#e6cc8b',22);showToast(['La primera brasa recuerda tu nombre.','La segunda brasa recuerda tu juramento.','La última brasa recuerda el amanecer.'][savedRelics-1],2900);updateHud();}
-    if(player.x>2780&&savedRelics>=3&&!boss.active){boss.active=true;ui['boss-bar'].hidden=false;showToast('EL BASTIÓN · El Caballero Hueco despierta',2700);}if(boss.active&&!boss.dead){boss.hurt=Math.max(0,boss.hurt-dt);boss.attack-=dt;boss.dir=player.x<boss.x?-1:1;if(boss.hurt>0){boss.x+=(boss.vx||0)*dt;boss.vx*=.85;}else if(Math.abs(player.x-boss.x)>72)boss.x+=boss.dir*53*dt;else if(boss.attack<=0){boss.attack=1.35;boss.vx=boss.dir*250;boss.vy=-130;damagePlayer();}boss.x=Math.max(2860,Math.min(3210,boss.x));boss.vy+=800*dt;boss.y+=boss.vy*dt;if(boss.y+boss.h>floorY){boss.y=floorY-boss.h;boss.vy=0;}ui['boss-fill'].style.width=Math.max(0,boss.hp/boss.maxHp*100)+'%';if(Math.abs(player.x-boss.x)<58&&boss.attack>.9)damagePlayer();}
+    for(const r of relics)if(!r.got&&Math.abs(player.x+17-r.x)<36&&Math.abs(player.y+29-r.y)<60){r.got=true;savedRelics++;player.soul=Math.min(100,player.soul+30);player.hp=Math.min(player.maxHp,player.hp+1);checkpoint=Math.min(WORLD-80,Math.floor(r.x+80));burst(r.x,r.y,'#e6cc8b',22);showToast(['La primera brasa recuerda tu nombre.','La segunda brasa recuerda tu juramento.','La tercera brasa recuerda tu juramento.','La cuarta brasa recuerda tu sacrificio.','La quinta brasa recuerda tu esperanza.','La última brasa recuerda el amanecer.'][savedRelics-1],2900);updateHud();}
+    if(player.x>8660&&savedRelics>=6&&!boss.active){boss.active=true;ui['boss-bar'].hidden=false;showToast('EL BASTIÓN DEL ÚLTIMO SOL · El Caballero Hueco despierta',3200);}if(boss.active&&!boss.dead){boss.hurt=Math.max(0,boss.hurt-dt);boss.attack-=dt;boss.dir=player.x<boss.x?-1:1;if(boss.hurt>0){boss.x+=(boss.vx||0)*dt;boss.vx*=.85;}else if(Math.abs(player.x-boss.x)>72)boss.x+=boss.dir*53*dt;else if(boss.attack<=0){boss.attack=1.35;boss.vx=boss.dir*250;boss.vy=-130;damagePlayer();}boss.x=Math.max(8990,Math.min(9480,boss.x));boss.vy+=800*dt;boss.y+=boss.vy*dt;if(boss.y+boss.h>floorY){boss.y=floorY-boss.h;boss.vy=0;}ui['boss-fill'].style.width=Math.max(0,boss.hp/boss.maxHp*100)+'%';if(Math.abs(player.x-boss.x)<58&&boss.attack>.9)damagePlayer();}
     for(const p of projectiles){p.x+=p.vx*dt;p.life-=dt;if(p.from==='player'){for(const e of enemies)if(!e.dead&&Math.abs(e.x+17-p.x)<30&&Math.abs(e.y+25-p.y)<38){hurtEnemy(e,2);p.life=0;break;}if(boss.active&&!boss.dead&&Math.abs(boss.x+29-p.x)<42&&Math.abs(boss.y+46-p.y)<58){hurtBoss(2);p.life=0;}}}projectiles=projectiles.filter(p=>p.life>0&&p.x>-80&&p.x<WORLD+80);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=170*dt;p.life-=dt;}particles=particles.filter(p=>p.life>0);
-    camera=Math.max(0,Math.min(WORLD-W,player.x+17-W*.42));ui['zone-name'].textContent=player.x<800?'LOS JARDINES HUNDIDOS':player.x<1540?'EL CLAUSTRO DE HUESO':player.x<2400?'LA GARGANTA DE LOS REYES':'BASTIÓN DEL ÚLTIMO SOL';ui.hint.textContent=player.x>checkpoint+80&&player.x<checkpoint+280?'✦  SANTUARIO DE CENIZA':(player.x>2720&&savedRelics<3?'REÚNE LAS TRES BRASAS PARA ABRIR EL BASTIÓN':'');just.clear();
+    camera=Math.max(0,Math.min(WORLD-W,player.x+17-W*.42));ui['zone-name'].textContent=player.x<1150?'I · LOS JARDINES HUNDIDOS':player.x<2300?'II · EL CLAUSTRO DE HUESO':player.x<3450?'III · LA GARGANTA DE LOS REYES':player.x<4600?'IV · BOSQUE DE LAS CAMPANAS':player.x<5750?'V · LAS MINAS DE VIDRIO':player.x<6900?'VI · MAR DE CENIZA':player.x<8050?'VII · LA CIUDADELA CAÍDA':'VIII · BASTIÓN DEL ÚLTIMO SOL';ui.hint.textContent=player.x>checkpoint+80&&player.x<checkpoint+280?'✦  SANTUARIO DE CENIZA':(player.x>8300&&savedRelics<6?'REÚNE LAS SEIS BRASAS PARA ABRIR EL BASTIÓN':(player.x>8300&&!boss.active?'EL BASTIÓN SE ABRE · AVANZA':'VIGILIA '+Math.max(1,Math.min(8,Math.floor(player.x/1150)+1))+' / 8'));just.clear();
   };
 const path=(points,fill,stroke=null,line=1)=>{ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=line;ctx.stroke();}};
   const drawBackground=()=>{
@@ -44,7 +63,7 @@ const path=(points,fill,stroke=null,line=1)=>{ctx.beginPath();ctx.moveTo(points[
     // Distant ruined ridges.
     for(let layer=0;layer<3;layer++){let base=H*(.67+layer*.075),step=180+layer*80,off=(camera*(.13+layer*.13))%step;ctx.beginPath();ctx.moveTo(-step,base);for(let x=-step;x<W+step;x+=step){const idx=Math.floor((x+off)/step);const peak=base-30-rand(idx+layer*90)*H*(.09+layer*.035);ctx.lineTo(x+off,peak);ctx.lineTo(x+step*.48+off,base+rand(idx+111+layer)*25);}ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=['#28272c','#202126','#181a20'][layer];ctx.fill();}
     // Broken arches and hanging roots.
-    for(let i=0;i<11;i++){let wx=i*390+90,sx=wx-camera*.55;if(sx<-160||sx>W+160)continue;let hh=70+rand(i+9)*140,b=H*.69;ctx.fillStyle='#17191f';ctx.fillRect(sx,b-hh,19,hh);ctx.fillRect(sx+74,b-hh*.8,13,hh*.8);ctx.beginPath();ctx.arc(sx+52,b-hh,39,Math.PI,0);ctx.lineTo(sx+65,b-hh);ctx.arc(sx+52,b-hh,26,0,Math.PI,true);ctx.closePath();ctx.fill();ctx.fillStyle='#343037';ctx.fillRect(sx-3,b-hh,25,6);}
+    for(let i=0;i<26;i++){let wx=i*390+90,sx=wx-camera*.55;if(sx<-160||sx>W+160)continue;let hh=70+rand(i+9)*140,b=H*.69;ctx.fillStyle='#17191f';ctx.fillRect(sx,b-hh,19,hh);ctx.fillRect(sx+74,b-hh*.8,13,hh*.8);ctx.beginPath();ctx.arc(sx+52,b-hh,39,Math.PI,0);ctx.lineTo(sx+65,b-hh);ctx.arc(sx+52,b-hh,26,0,Math.PI,true);ctx.closePath();ctx.fill();ctx.fillStyle='#343037';ctx.fillRect(sx-3,b-hh,25,6);}
     // Ash motes drift in the air.
     for(let i=0;i<38;i++){const x=((rand(i*4+1)*W-camera*.12+elapsed*(5+rand(i)*8))%W+W)%W;const y=rand(i*7+3)*H*.77;ctx.globalAlpha=.18+rand(i+23)*.45;ctx.fillStyle=i%5===0?'#d5b879':'#b9b2a1';ctx.fillRect(x,y,1.5,1.5);}ctx.globalAlpha=1;
   };
