@@ -1,1 +1,0 @@
-{"name":"umbral-de-ceniza","version":"1.0.0","private":true,"description":"Juego de acción 2D multiplataforma para navegador y PWA","scripts":{"build":"node build.mjs","start":"node serve.mjs"}}
