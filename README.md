@@ -1,18 +1,16 @@
-# PlayGround
+# Umbral de Ceniza
 
-<!-- omgithub:readme:start -->
-## 🚀 Build, play, and remix with OMGithub
+**Umbral de Ceniza** es una aventura de acción 2D con exploración metroidvania y fantasía oscura, creada como juego web instalable.
 
-**Created using [OMGithub.com](https://go.ondev.store/).**
+## Jugar
 
-[![OMGithub](https://img.shields.io/badge/OMGithub-Open%20project-orange?style=for-the-badge)](https://go.ondev.store/oachmel-ops/PlayGround)
-[![GitHub](https://img.shields.io/badge/GitHub-Source-181717?logo=github&style=for-the-badge)](https://github.com/oachmel-ops/PlayGround)
+Abre `index.html` en un navegador moderno o sirve esta carpeta en un servidor web. No necesita dependencias ni compilación.
 
-- 🎮 [Open the project](https://go.ondev.store/oachmel-ops/PlayGround).
-- ✨ [Remix this project](https://go.ondev.store/oachmel-ops/PlayGround?remix=1).
-- 💻 [Explore the source](https://github.com/oachmel-ops/PlayGround).
-- 🛠️ [Check build runs](https://github.com/oachmel-ops/PlayGround/actions).
-- 🐛 [Report an issue](https://github.com/oachmel-ops/PlayGround/issues).
-- 👤 [Explore the creator's projects](https://go.ondev.store/oachmel-ops).
-- 🌍 [Create with OMGithub](https://go.ondev.store/).
-<!-- omgithub:readme:end -->
+- **Windows:** mueve con `←` / `→` o `A` / `D`; salta con `Espacio`; ataca con `J` / `X`; esquiva con `K` / `C`; lanza magia con `L` / `V`.
+- **Android:** abre el juego en Chrome y usa los controles táctiles; desde el menú del navegador se puede instalar como aplicación web (PWA).
+
+El juego incluye una introducción de historia, tres brasas coleccionables, enemigos, combate cuerpo a cuerpo y magia, santuarios, un jefe final y controles adaptados a móvil.
+
+## APK y Windows
+
+Esta entrega es multiplataforma en navegador y PWA instalable; no incluye todavía un APK firmado ni un instalador `.exe`. Para generar APK/paquete de escritorio hay que envolver la aplicación web con Capacitor (Android) y Tauri o Electron (Windows), y compilar/firma en los entornos correspondientes.

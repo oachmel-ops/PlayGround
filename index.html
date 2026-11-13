@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#101116">
+  <meta name="description" content="Umbral de Ceniza: una aventura metroidvania de fantasía oscura.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>Umbral de Ceniza — La última vigilia</title>
+</head>
+<body>
+  <main class="game-shell">
+    <canvas id="game" aria-label="Juego Umbral de Ceniza"></canvas>
+    <div class="vignette"></div>
+    <header class="hud" id="hud" hidden>
+      <div class="brand-mark"><span class="brand-icon">✦</span><div><b>UMBRAL DE CENIZA</b><small id="zone-name">LOS JARDINES HUNDIDOS</small></div></div>
+      <div class="vitals"><div class="hearts" id="hearts"></div><div class="soul-track"><span>ESENCIA</span><div><i id="soul-fill"></i></div></div></div>
+      <div class="relic-count"><span>✧</span><b id="relics">0</b><small>/ 3</small></div>
+      <button class="icon-button" id="lore-button" title="Crónica">☷</button>
+      <button class="icon-button" id="pause-button" title="Pausa">Ⅱ</button>
+    </header>
+    <div class="boss-bar" id="boss-bar" hidden><span>EL CABALLERO HUECO</span><div><i id="boss-fill"></i></div></div>
+    <div class="toast" id="toast"></div>
+    <section class="screen title-screen" id="title-screen">
+      <div class="title-copy">
+        <p class="eyebrow">UNA CRÓNICA DE FANTASÍA OSCURA</p>
+        <h1>UMBRAL<br><em>DE CENIZA</em></h1>
+        <div class="rule"><i>✦</i></div>
+        <p class="subtitle">Cuando el último sol murió,<br>la piedra aprendió a recordar.</p>
+        <button class="primary-button" id="begin-button">COMENZAR LA VIGILIA <span>→</span></button>
+        <button class="text-button" id="lore-title-button">LEER LA CRÓNICA</button>
+        <div class="title-footer">UN REINO ENTERRADO · UNA ESPADA DESPIERTA</div>
+      </div>
+      <div class="title-hero"><div class="moon"></div><div class="hero-silhouette"><i></i><b></b><em></em></div><div class="title-ground"></div><span class="floating-ash ash-a">✦</span><span class="floating-ash ash-b">·</span><span class="floating-ash ash-c">✧</span></div>
+      <div class="title-controls"><span>← → MOVER</span><span>ESPACIO SALTAR</span><span>J / X ESPADA</span><span>K / C ESQUIVAR</span></div>
+    </section>
+    <section class="screen lore-screen" id="lore-screen" hidden>
+      <div class="lore-card"><p class="eyebrow">FRAGMENTO I · EL REINO QUE CALLA</p><h2>La última vigilia</h2><p>En el reino de <strong>Vesperia</strong>, las campanas mantenían a raya a la noche. Cuando la última dejó de sonar, la niebla entró por las grietas y los vivos olvidaron sus propios nombres.</p><p>Eres <strong>Ser Kael</strong>, guardián de la Hoja del Ocaso. Bajo una armadura sellada con juramentos antiguos, buscas las tres brasas que aún recuerdan el sol. Solo ellas pueden abrir las puertas del Bastión y silenciar al Caballero Hueco.</p><p>Pero las brasas no son luz. Son recuerdos. Y cada recuerdo que despiertas también te reconoce.</p><div class="lore-quote">«No temas a la oscuridad. Teme a aquello que la oscuridad conserva.»</div><button class="primary-button" id="lore-continue">VOLVER A LA VIGILIA <span>→</span></button></div>
+    </section>
+    <section class="screen pause-screen" id="pause-screen" hidden><div class="pause-card"><p class="eyebrow">LA VIGILIA SE DETIENE</p><h2>En la penumbra</h2><p>Tu juramento aún arde.</p><button class="primary-button" id="resume-button">CONTINUAR <span>→</span></button><button class="text-button" id="pause-lore">LEER LA CRÓNICA</button></div></section>
+    <section class="screen ending-screen" id="ending-screen" hidden><div class="ending-card"><p class="eyebrow">FIN DEL PRIMER CANTO</p><h2 id="ending-title">La campana recuerda</h2><p id="ending-copy">El silencio se rompe. Por primera vez en cien años, Vesperia vuelve a soñar con el amanecer.</p><div class="lore-quote">La historia continúa en las profundidades...</div><button class="primary-button" id="again-button">VOLVER A JUGAR <span>↻</span></button></div></section>
+    <nav class="touch-controls" id="touch-controls" aria-label="Controles táctiles">
+      <div class="touch-move"><button data-key="left" aria-label="Izquierda">◀</button><button data-key="right" aria-label="Derecha">▶</button></div>
+      <div class="touch-actions"><button data-action="dash" aria-label="Esquivar">↗</button><button data-action="attack" class="attack-touch" aria-label="Atacar">⚔</button><button data-action="jump" aria-label="Saltar">↑</button><button data-action="spell" aria-label="Magia">✦</button></div>
+    </nav>
+    <div class="hint" id="hint"></div>
+  </main>
+  <script src="game.js"></script>
+  <script>if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('./service-worker.js').catch(() => {});</script>
+</body>
+</html>
